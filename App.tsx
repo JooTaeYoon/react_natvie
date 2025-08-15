@@ -5,6 +5,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import Board from './screens/Board';
 import News from './screens/News';
+import BoardOne from './screens/BoardOne';
+import PostModal from './screens/PostModal';
 
 const Stack = createStackNavigator();
 
@@ -34,6 +36,7 @@ export default function App() {
           // options={{ headerShown: false }}
         />
         <Stack.Screen name="뉴스 페이지" component={News} />
+        <Stack.Screen name="getOne" component={BoardOne} />
       </Stack.Navigator>
     </NavigationContainer>
   );

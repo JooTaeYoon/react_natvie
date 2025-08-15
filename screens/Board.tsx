@@ -1,80 +1,75 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button, Modal, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Button,
+  FlatList,
+  TouchableOpacity,
+} from 'react-native';
 import axios from 'axios';
-import { Separators } from 'react-native/types_generated/index';
+import PostModal from './PostModal';
 
 export default function Board({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [content, setContent] = useState('');
   const [writer, setWriter] = useState('');
   const [title, setTitle] = useState('');
+  const [id, setId] = useState(null);
+  const [posts, setPosts] = useState([]); // 게시글 목록 상태 추가
+
+  const handleSave = () => {
+    // 저장 로직 작성
+    setModalVisible(false);
+    setContent('');
+    setTitle('');
+    setWriter('');
+  };
+
+  const fetchData = async () => {
+    const payload = await axios.get('http://localhost:8080/api/read');
+    const data = payload.data;
+    setPosts(data);
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const payload = await axios.get('http://localhost:8080/api/read');
-    };
-
     fetchData();
     // 초기화 작업 등 필요한 경우 여기에 작성
-  });
-
-  const save = async (
-    flag: boolean,
-    content: string,
-    title: string,
-    writer: string,
-  ) => {
-    console.info('로그 테스트 !');
-    const payload = await axios.post('http://localhost:8080/api/save', {
-      content,
-      title,
-      writer,
-    });
-
-    if (flag) {
-      // 저장 로직 구현
-      console.log('저장된 내용:', content);
-    } else {
-      // 취소 로직 구현
-      console.log('취소됨');
-    }
-    setModalVisible(false);
-  };
+  }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Board 화면입니다</Text>
-      <Modal visible={modalVisible}>
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContainer}>
-            <Text>게시글 작성</Text>
-            <TextInput
-              style={styles.textInput}
-              value={writer}
-              onChangeText={setWriter}
-            />
-            <TextInput
-              style={styles.textInput}
-              value={title}
-              onChangeText={setTitle}
-            />
-            <TextInput
-              style={styles.textInput}
-              placeholder="내용 입력 하시오"
-              value={content}
-              onChangeText={setContent}
-            />
-            <View style={styles.btn}>
-              <Button
-                title="저장"
-                onPress={() => save(false, content, title, writer)}
-              />
-              <Button title="닫기" onPress={() => setModalVisible(false)} />
-            </View>
-          </View>
-        </View>
-      </Modal>
       <Button title="게시글 쓰기" onPress={() => setModalVisible(true)} />
+      <FlatList
+        style={{ width: '100%' }}
+        data={posts}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.postItem}
+            onPress={async () => {
+              const id = item.id;
+              navigation.navigate('getOne', { id });
+            }}
+          >
+            <Text style={styles.postTitle}>{item.title}</Text>
+            <Text style={styles.postWriter}>{item.writer}</Text>
+            <Text style={styles.postContent}>{item.content}</Text>
+            <Text style={styles.text}>{item.id}</Text>
+          </TouchableOpacity>
+        )}
+      />
+      <PostModal
+        visible={modalVisible}
+        writer={writer}
+        title={title}
+        content={content}
+        setWriter={setWriter}
+        setTitle={setTitle}
+        setContent={setContent}
+        setId={setId}
+        onClose={() => setModalVisible(false)}
+      />
       <Button
         title="Home 화면으로 이동"
         onPress={() => navigation.navigate('Home')}
@@ -120,5 +115,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
+  },
+  postItem: {
+    backgroundColor: '#fff',
+    padding: 16,
+    marginVertical: 8,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  postTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  postWriter: {
+    fontSize: 14,
+    color: '#888',
+    marginBottom: 4,
+  },
+  postContent: {
+    fontSize: 14,
   },
 });
