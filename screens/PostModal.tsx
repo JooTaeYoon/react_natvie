@@ -10,30 +10,14 @@ import {
 } from 'react-native';
 import axios from 'axios';
 
-export default function PostModal({
-  visible,
-  writer,
-  title,
-  content,
-  setWriter,
-  setTitle,
-  setContent,
-  onClose,
-  id,
-  navigation,
-}) {
-  const [localWriter, setLocalWriter] = useState(writer);
+export default function PostModal({ visible, onClose, id, navigation }) {
+  const [content, setContent] = useState('');
+  const [writer, setWriter] = useState('');
+  const [title, setTitle] = useState('');
   const [localTitle, setLocalTitle] = useState(title);
-  const [localContent, setLocalContent] = useState(content);
-
   useEffect(() => {
-    if (visible) {
-      console.log('PostModal visible:', visible);
-      setLocalWriter(writer);
-      setLocalTitle(title);
-      setLocalContent(content);
-    }
-  }, [visible, writer, title, content]);
+    if (visible) setLocalTitle(title);
+  }, [visible, title]);
 
   const onSave = async () => {
     const payload = await axios.post('http://localhost:8080/api/save', {
@@ -45,6 +29,10 @@ export default function PostModal({
       Alert.alert('저장 성공', '게시글이 저장되었습니다.');
       onClose();
     }
+    setting();
+  };
+
+  const setting = () => {
     setWriter('');
     setTitle('');
     setContent('');
@@ -56,6 +44,7 @@ export default function PostModal({
     console.log('title는', title);
     console.log('content는', content);
     const payload = await axios.put(`http://localhost:8080/api/update/${id}`, {
+      id,
       writer,
       title,
       content,
@@ -64,9 +53,7 @@ export default function PostModal({
       Alert.alert('수정 성공', '게시글이 수정되었습니다.');
       onClose();
     }
-    setWriter('');
-    setTitle('');
-    setContent('');
+    // setting();
   };
 
   return (

@@ -13,7 +13,7 @@ export default function BoardOne({ route, navigation }) {
   const fetchData = async () => {
     const payload = await axios.get(`http://localhost:8080/api/read/${id}`);
     const data = payload.data;
-    console.log('data는zzz,', data);
+    console.log('data: ', data);
     if (payload.status === 201) {
       Alert.alert('데이터 없음', '게시글을 찾을 수 없습니다.');
       navigation.goBack();
@@ -26,6 +26,7 @@ export default function BoardOne({ route, navigation }) {
     setContent(data.content);
     setWriter(data.writer);
     setTitle(data.title);
+    console.log(data);
   };
 
   const deletePost = async id => {
@@ -41,7 +42,7 @@ export default function BoardOne({ route, navigation }) {
   useEffect(() => {
     fetchData();
     // 초기화 작업 등 필요한 경우 여기에 작성
-  });
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -59,6 +60,8 @@ export default function BoardOne({ route, navigation }) {
           setContent={setContent}
           setWriter={setWriter}
           setTitle={setTitle}
+          title={title}
+          content={content}
           id={id} // ← 이렇게 추가!
         />
       </View>
