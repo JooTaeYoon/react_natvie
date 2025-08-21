@@ -1,7 +1,8 @@
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Button, Alert, Platform } from 'react-native';
 import PostModal from './PostModal';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function BoardOne({ route, navigation }) {
   const [content, setContent] = useState('');
@@ -10,10 +11,16 @@ export default function BoardOne({ route, navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const { id } = route.params;
 
+  const BASE_URL =
+    Platform.OS === 'android'
+      ? 'http://10.0.2.2:8080'
+      : 'http://localhost:8080';
+
   const fetchData = async () => {
-    const payload = await axios.get(`http://localhost:8080/api/read/${id}`);
+    console.log('Fetching data for ID:', id);
+    const payload = await axios.get(`${BASE_URL}/api/read/${id}`);
     const data = payload.data;
-    console.log('data: ', data);
+    console.log('sss: ', data);
     if (payload.status === 201) {
       Alert.alert('데이터 없음', '게시글을 찾을 수 없습니다.');
       navigation.goBack();
@@ -30,19 +37,18 @@ export default function BoardOne({ route, navigation }) {
   };
 
   const deletePost = async id => {
-    const payload = await axios.delete(
-      `http://localhost:8080/api/delete/${id}`,
-    );
+    const payload = await axios.delete(`${BASE_URL}/api/delete/${id}`);
     if (payload.status === 200) {
       Alert.alert('삭제 성공', '게시글이 삭제되었습니다.');
       navigation.goBack();
     }
   };
 
-  useEffect(() => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useFocusEffect(() => {
     fetchData();
     // 초기화 작업 등 필요한 경우 여기에 작성
-  }, []);
+  });
 
   return (
     <View style={styles.container}>
@@ -61,6 +67,7 @@ export default function BoardOne({ route, navigation }) {
           setWriter={setWriter}
           setTitle={setTitle}
           title={title}
+          writer={writer}
           content={content}
           id={id} // ← 이렇게 추가!
         />
@@ -121,5 +128,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 16,
+    gap: 50,
   },
 });

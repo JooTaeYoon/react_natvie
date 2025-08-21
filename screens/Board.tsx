@@ -6,9 +6,11 @@ import {
   Button,
   FlatList,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import axios from 'axios';
 import PostModal from './PostModal';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function Board({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -18,24 +20,22 @@ export default function Board({ navigation }) {
   const [id, setId] = useState(null);
   const [posts, setPosts] = useState([]); // 게시글 목록 상태 추가
 
-  const handleSave = () => {
-    // 저장 로직 작성
-    setModalVisible(false);
-    setContent('');
-    setTitle('');
-    setWriter('');
-  };
+  const BASE_URL =
+    Platform.OS === 'android'
+      ? 'http://10.0.2.2:8080'
+      : 'http://localhost:8080';
 
   const fetchData = async () => {
-    const payload = await axios.get('http://localhost:8080/api/read');
+    const payload = await axios.get(`${BASE_URL}/api/read`);
     const data = payload.data;
     setPosts(data);
   };
 
-  useEffect(() => {
-    fetchData();
-    // 초기화 작업 등 필요한 경우 여기에 작성
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData(); // 게시글 목록 새로고침 함수
+    }, []),
+  );
 
   return (
     <View style={styles.container}>
@@ -55,6 +55,7 @@ export default function Board({ navigation }) {
             <Text style={styles.postTitle}>{item.title}</Text>
             <Text style={styles.postWriter}>{item.writer}</Text>
             <Text style={styles.postContent}>{item.content}</Text>
+            <Text style={styles.create_at}>{item.create_at}</Text>
             <Text style={styles.text}>{item.id}</Text>
           </TouchableOpacity>
         )}
@@ -70,10 +71,13 @@ export default function Board({ navigation }) {
         setId={setId}
         onClose={() => setModalVisible(false)}
       />
-      <Button
-        title="Home 화면으로 이동"
-        onPress={() => navigation.navigate('Home')}
-      />
+      <>
+        <Button
+          title="Home 화면으로 이동"
+          onPress={() => navigation.navigate('Home')}
+        />
+        <Button title="새로고침" onPress={() => fetchData()}></Button>
+      </>
     </View>
   );
 }
@@ -134,5 +138,10 @@ const styles = StyleSheet.create({
   },
   postContent: {
     fontSize: 14,
+  },
+  create_at: {
+    fontSize: 12,
+    color: '#aaa',
+    marginTop: 4,
   },
 });

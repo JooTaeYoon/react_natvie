@@ -1,4 +1,4 @@
-import { React, useState, useEffect } from 'react';
+import { React, useState } from 'react';
 import {
   Modal,
   View,
@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Text,
   Alert,
+  TouchableOpacity,
+  Platform,
 } from 'react-native';
 import axios from 'axios';
 
@@ -14,17 +16,19 @@ export default function PostModal({ visible, onClose, id, navigation }) {
   const [content, setContent] = useState('');
   const [writer, setWriter] = useState('');
   const [title, setTitle] = useState('');
-  const [localTitle, setLocalTitle] = useState(title);
-  useEffect(() => {
-    if (visible) setLocalTitle(title);
-  }, [visible, title]);
+
+  const BASE_URL =
+    Platform.OS === 'android'
+      ? 'http://10.0.2.2:8080'
+      : 'http://localhost:8080';
 
   const onSave = async () => {
-    const payload = await axios.post('http://localhost:8080/api/save', {
+    const payload = await axios.post(`${BASE_URL}/api/save`, {
       writer,
       title,
       content,
     });
+
     if (payload.status === 200) {
       Alert.alert('저장 성공', '게시글이 저장되었습니다.');
       onClose();
@@ -36,14 +40,11 @@ export default function PostModal({ visible, onClose, id, navigation }) {
     setWriter('');
     setTitle('');
     setContent('');
+    navigation.goBack();
   };
 
   const onUpdate = async () => {
-    console.log('postId는', id);
-    console.log('writer는', writer);
-    console.log('title는', title);
-    console.log('content는', content);
-    const payload = await axios.put(`http://localhost:8080/api/update/${id}`, {
+    const payload = await axios.put(`${BASE_URL}/api/update/${id}`, {
       id,
       writer,
       title,
@@ -88,7 +89,9 @@ export default function PostModal({ visible, onClose, id, navigation }) {
               </>
             ) : (
               <>
-                <Button title="저장" onPress={onSave} />
+                <TouchableOpacity onPress={onSave} style={{ marginRight: 10 }}>
+                  <Text>저장</Text>
+                </TouchableOpacity>
                 <Button title="닫기" onPress={onClose} color="red" />
               </>
             )}
